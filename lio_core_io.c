@@ -573,7 +573,7 @@ op_status_t lio_myclose_fn(void *arg, int id)
     fh->ref_count--;
     if (fh->ref_count > 0) {  //** Somebody else has it open as well
         lio_unlock(lc);
-        return(status);
+        goto finished;
     }
     lio_unlock(lc);
 
@@ -682,11 +682,14 @@ op_status_t lio_myclose_fn(void *arg, int id)
     if (fh->remove_on_close) status = gop_sync_exec_status(gop_lio_remove_object(lc, fd->creds, fd->path, NULL, lio_exists(lc, fd->creds, fd->path)));
 
     free(fh);
-    if (fd->path != NULL) free(fd->path);
-    free(fd);
 
     if (serr.hard != 0) status = op_failure_status;
     log_printf(1, "hard=%d soft=%d status=%d\n", serr.hard, serr.soft, status.op_status);
+
+finished:
+    if (fd->path != NULL) free(fd->path);
+    free(fd);
+
     return(status);
 }
 
